@@ -38,6 +38,11 @@ def is_link_or_junction(p: Path) -> bool:
             return bool(os.readlink(p))
         except (OSError, ValueError):
             pass
+        try:
+            import stat
+            return bool(p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT)
+        except Exception:
+            pass
     return False
 
 
@@ -231,7 +236,9 @@ class CliAndRealtimeSyncTests(unittest.TestCase):
             # Replace links temporarily to simulate pre-existing divergent profile state before sync
             for sub in ("projects", "plugins"):
                 target = p1_cfg / sub
-                if target.is_symlink():
+                if IS_WINDOWS and is_link_or_junction(target):
+                    os.rmdir(target)
+                elif target.is_symlink():
                     target.unlink()
                 elif target.is_dir():
                     target.rmdir()

@@ -1456,25 +1456,42 @@ def _merge_entry_into_dir(src_entry: Path, dst_entry: Path):
                 pass
 
 
+def _is_dir_link_or_junction(p: Path) -> bool:
+    if p.is_symlink():
+        return True
+    if IS_WINDOWS:
+        if hasattr(os.path, "isjunction") and os.path.isjunction(p):
+            return True
+        try:
+            import stat as _stat
+            return bool(os.lstat(p).st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT)
+        except OSError:
+            return False
+    return False
+
+
+def _remove_dir_link_or_junction(p: Path):
+    if IS_WINDOWS:
+        try:
+            os.rmdir(p)
+            return
+        except OSError:
+            pass
+    p.unlink(missing_ok=True)
+
+
 def _merge_and_link_dir(canonical_dir: Path, prof_dir: Path, deduplicate_swarm_projects: bool = False) -> bool:
     """Ensure prof_dir is a symlink/junction to canonical_dir after merging any local contents."""
     canonical_dir.mkdir(parents=True, exist_ok=True)
 
-    if prof_dir.is_symlink():
+    if _is_dir_link_or_junction(prof_dir):
         try:
             if prof_dir.resolve() == canonical_dir.resolve():
                 return False
         except OSError:
             pass
-        prof_dir.unlink(missing_ok=True)
+        _remove_dir_link_or_junction(prof_dir)
     elif prof_dir.is_dir():
-        # On Windows, directory junctions satisfy is_dir() and not is_symlink()
-        if IS_WINDOWS:
-            try:
-                if prof_dir.resolve() == canonical_dir.resolve():
-                    return False
-            except OSError:
-                pass
         has_swarm = _canonical_dir_has_swarm_board(canonical_dir) if deduplicate_swarm_projects else False
         for entry in list(prof_dir.iterdir()):
             if deduplicate_swarm_projects and entry.is_file() and entry.suffix == ".json":
@@ -2206,7 +2223,7 @@ def get_sync_status_data(profiles_dir: Optional[Path] = None) -> dict:
             if pdir.is_dir() and not pdir.name.startswith(".") and (pdir / "profile.json").is_file():
                 cfg = pdir / "home" / ".gemini" / "config"
                 linked_ok = all(
-                    (cfg / sub).is_symlink() or (IS_WINDOWS and (cfg / sub).is_dir())
+                    _is_dir_link_or_junction(cfg / sub)
                     for sub in ("projects", "skills", "plugins")
                 )
                 profiles_status.append({
@@ -2293,6 +2310,13 @@ def set_active_profile(name: str) -> str:
     return target
 
 
+def _wrap_windows_cmd(bin_path: str, args_list: list[str]) -> list[str]:
+    cmd = [bin_path, *args_list]
+    if IS_WINDOWS and str(bin_path).lower().endswith((".cmd", ".bat")):
+        return ["cmd.exe", "/c", *cmd]
+    return cmd
+
+
 def get_real_agy_binary() -> Optional[str]:
     env_bin = os.environ.get("ANTIGRAVITY_CLI_BIN")
     shims_dir = get_shims_dir().resolve() if get_shims_dir().exists() else get_shims_dir()
@@ -2300,13 +2324,25 @@ def get_real_agy_binary() -> Optional[str]:
     candidates = []
     if env_bin:
         candidates.append(Path(env_bin).expanduser())
-    candidates.extend([
-        real_home / ".local" / "bin" / "agy",
-        real_home / ".gemini" / "bin" / "agy",
-    ])
-    for entry in os.environ.get("PATH", "").split(os.pathsep):
-        if entry:
-            candidates.append(Path(entry) / ("agy.exe" if IS_WINDOWS else "agy"))
+    if IS_WINDOWS:
+        candidates.extend([
+            real_home / ".local" / "bin" / "agy.cmd",
+            real_home / ".local" / "bin" / "agy.exe",
+            real_home / ".gemini" / "bin" / "agy.cmd",
+            real_home / ".gemini" / "bin" / "agy.exe",
+        ])
+        for entry in os.environ.get("PATH", "").split(os.pathsep):
+            if entry:
+                candidates.append(Path(entry) / "agy.cmd")
+                candidates.append(Path(entry) / "agy.exe")
+    else:
+        candidates.extend([
+            real_home / ".local" / "bin" / "agy",
+            real_home / ".gemini" / "bin" / "agy",
+        ])
+        for entry in os.environ.get("PATH", "").split(os.pathsep):
+            if entry:
+                candidates.append(Path(entry) / "agy")
 
     for cand in candidates:
         try:
@@ -2451,7 +2487,7 @@ def cmd_exec_agy(raw_args: list[str]) -> int:
         return 1
 
     if IS_WINDOWS:
-        res = subprocess.run([real_agy, *raw_args], env=env)
+        res = subprocess.run(_wrap_windows_cmd(real_agy, raw_args), env=env)
         if target != "host":
             sync_profile_auth_tokens(get_profiles_dir() / target)
         return res.returncode
@@ -2504,7 +2540,7 @@ def cmd_cli(raw_args: list[str]) -> int:
         print(f"{COLOR_RED}Error: {e}{COLOR_RESET}", file=sys.stderr)
         return 1
 
-    res = subprocess.run([real_agy, *agy_args], env=env)
+    res = subprocess.run(_wrap_windows_cmd(real_agy, agy_args), env=env)
     if target != "host":
         sync_profile_auth_tokens(profiles_dir / target)
     return res.returncode

@@ -3,13 +3,13 @@
 > **Google Antigravity 原生非侵入式多账号并行与沙盒管理器。**  
 > 支持在 macOS 和 Windows 上同时并行开启多个独立的 Antigravity 窗口，左右分屏协同开发，彻底解决单账号配额限制。
 
-[English](README.md) | 简体中文 | [产品主页 / 文档](https://edison-land.github.io/paragravity)
+[English](README.md) | 简体中文 | [仓库主页](https://github.com/Teresa-CoCo/paragravity/tree/use) | [上游原仓](https://github.com/edison-land/paragravity)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform: macOS | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey.svg)]()
-[![Python: 3.8+](https://img.shields.io/badge/Python-3.8+-yellow.svg)]()
-[![Follow on X](https://img.shields.io/badge/X-@Edison__aware-black?logo=x)](https://x.com/Edison_aware)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Teresa-CoCo/paragravity/blob/use/LICENSE)
+[![Platform: macOS | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/Teresa-CoCo/paragravity/tree/use)
+[![Python: 3.8+](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/downloads/)
+[![GitHub: Teresa-CoCo/paragravity](https://img.shields.io/badge/GitHub-Teresa--CoCo%2Fparagravity-181717?logo=github)](https://github.com/Teresa-CoCo/paragravity/tree/use)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Teresa-CoCo/paragravity/pulls)
 
 ---
 
@@ -58,7 +58,7 @@
 打开终端直接运行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/edison-land/paragravity/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Teresa-CoCo/paragravity/use/install.sh | bash
 ```
 
 ### 2. Windows 快速上手 (PowerShell / CMD)
@@ -66,7 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/edison-land/paragravity/main/instal
 克隆仓库并将 `bin` 目录加入环境变量 `PATH`：
 
 ```powershell
-git clone https://github.com/edison-land/paragravity.git $HOME\.paragravity
+git clone -b use https://github.com/Teresa-CoCo/paragravity.git $HOME\.paragravity
 # 将 $HOME\.paragravity\bin 加入 PATH，随后即可在 CMD 或 PowerShell 直接运行：
 pgrav create work
 ```
@@ -76,11 +76,11 @@ pgrav create work
 > - `python` 需在 `PATH` 中（任意 Python 3.8+ 版本即可）。
 > - **Git Bash (MSYS2) 完全支持。** `bin/pgrav` 是真实的 POSIX 脚本而非符号链接，因此在 Windows 默认 `core.symlinks=false` 的克隆下不会退化，参数转发正常。CMD/PowerShell 则会自动使用自带的 `pgrav.cmd`。
 
-### 3. Homebrew 安装（即将推出）
+### 3. macOS 手动克隆安装
 
 ```bash
-brew tap edison-land/tap
-brew install paragravity
+git clone -b use https://github.com/Teresa-CoCo/paragravity.git ~/.paragravity
+export PATH="$HOME/.paragravity/bin:$PATH"
 ```
 
 ---
@@ -205,8 +205,9 @@ pgrav ui --widget
 ## 🗑️ 卸载
 
 ```bash
-# 移除 CLI（没用 Homebrew 装的话跳过 brew 那行）
-brew uninstall paragravity   # 或者：rm ~/.local/bin/paragravity ~/.local/bin/pgrav
+# 如启用了后台同步服务先停止，再移除 CLI
+pgrav sync stop 2>/dev/null || true
+rm -f ~/.local/bin/paragravity ~/.local/bin/pgrav ~/.local/bin/web_server.py
 
 # 移除所有分身沙盒（⚠️ 永久删除全部登录状态与数据）
 rm -rf ~/.antigravity-profiles

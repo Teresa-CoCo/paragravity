@@ -3,13 +3,13 @@
 > **Native, non-invasive parallel multi-account & sandbox manager for Google Antigravity.**  
 > Run multiple Google Gemini Pro accounts side-by-side in independent, isolated windows on macOS and Windows.
 
-English | [简体中文](README_zh.md) | [Website / Docs](https://edison-land.github.io/paragravity)
+English | [简体中文](README_zh.md) | [GitHub Repository](https://github.com/Teresa-CoCo/paragravity/tree/use) | [Upstream](https://github.com/edison-land/paragravity)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform: macOS | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey.svg)]()
-[![Python: 3.8+](https://img.shields.io/badge/Python-3.8+-yellow.svg)]()
-[![Follow on X](https://img.shields.io/badge/X-@Edison__aware-black?logo=x)](https://x.com/Edison_aware)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Teresa-CoCo/paragravity/blob/use/LICENSE)
+[![Platform: macOS | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/Teresa-CoCo/paragravity/tree/use)
+[![Python: 3.8+](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/downloads/)
+[![GitHub: Teresa-CoCo/paragravity](https://img.shields.io/badge/GitHub-Teresa--CoCo%2Fparagravity-181717?logo=github)](https://github.com/Teresa-CoCo/paragravity/tree/use)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Teresa-CoCo/paragravity/pulls)
 
 ---
 
@@ -56,7 +56,7 @@ English | [简体中文](README_zh.md) | [Website / Docs](https://edison-land.gi
 ### 1. macOS One-Line Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/edison-land/paragravity/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Teresa-CoCo/paragravity/use/install.sh | bash
 ```
 
 ### 2. Windows Quick Start (PowerShell / CMD)
@@ -64,7 +64,7 @@ curl -fsSL https://raw.githubusercontent.com/edison-land/paragravity/main/instal
 Clone the repository and add the `bin` directory to your user `PATH`:
 
 ```powershell
-git clone https://github.com/edison-land/paragravity.git $HOME\.paragravity
+git clone -b use https://github.com/Teresa-CoCo/paragravity.git $HOME\.paragravity
 # Add $HOME\.paragravity\bin to PATH, then use:
 pgrav create work
 ```
@@ -74,11 +74,11 @@ pgrav create work
 > - `python` must be on `PATH` (any Python 3.8+ install works).
 > - **Git Bash (MSYS2) is fully supported.** `bin/pgrav` is a real POSIX script rather than a symlink, so it survives clones made with Windows' default `core.symlinks=false` and forwards arguments correctly. In CMD/PowerShell the bundled `pgrav.cmd` is used automatically.
 
-### 3. Homebrew Tap (Coming Soon)
+### 3. Manual Git Clone (macOS)
 
 ```bash
-brew tap edison-land/tap
-brew install paragravity
+git clone -b use https://github.com/Teresa-CoCo/paragravity.git ~/.paragravity
+export PATH="$HOME/.paragravity/bin:$PATH"
 ```
 
 ---
@@ -210,8 +210,9 @@ pgrav ui --widget
 ## 🗑️ Uninstall
 
 ```bash
-# Remove the CLI (skip the brew line if you didn't use Homebrew)
-brew uninstall paragravity   # or: rm ~/.local/bin/paragravity ~/.local/bin/pgrav
+# Stop background sync daemon (if enabled) and remove the CLI
+pgrav sync stop 2>/dev/null || true
+rm -f ~/.local/bin/paragravity ~/.local/bin/pgrav ~/.local/bin/web_server.py
 
 # Remove every profile sandbox (⚠️ permanently deletes all sign-in state and data)
 rm -rf ~/.antigravity-profiles
