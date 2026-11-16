@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ParaGravity One-Line Installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/edison-land/paragravity/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/Teresa-CoCo/paragravity/main/install.sh | bash
 
 set -euo pipefail
 
-REPO="${PARAGRAVITY_REPO:-edison-land/paragravity}"
+REPO="${PARAGRAVITY_REPO:-Teresa-CoCo/paragravity}"
 BRANCH="${PARAGRAVITY_BRANCH:-main}"
 INSTALL_DIR="${HOME}/.local/bin"
 RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
